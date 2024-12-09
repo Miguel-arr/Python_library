@@ -1,120 +1,170 @@
+import pandas as pd
+
 class TransformOperations:
-    @staticmethod
-    def filter_rows(data, condition):
-        """
-        Filtra las filas del DataFrame según una condición.
-
-        Args:
-            data (DataFrame): El conjunto de datos de entrada.
-            condition (function): Función que devuelve True o False para cada fila.
-
-        Returns:
-            DataFrame: Conjunto de datos filtrado.
-        """
-        return data[data.apply(condition, axis=1)]
 
     @staticmethod
-    def add_column(data, column_name, value_function):
+    def add_column(df, new_column_name, lambda_func):
         """
-        Agrega una nueva columna al DataFrame.
+        Agrega una nueva columna calculada a un DataFrame.
 
-        Args:
-            data (DataFrame): El conjunto de datos de entrada.
-            column_name (str): Nombre de la nueva columna.
-            value_function (function): Función que genera valores para la nueva columna.
-
-        Returns:
-            DataFrame: Conjunto de datos con la nueva columna agregada.
+        :param df: DataFrame original
+        :param new_column_name: Nombre de la nueva columna
+        :param lambda_func: Función que define el cálculo para cada fila
+        :return: DataFrame con la nueva columna
         """
-        data[column_name] = data.apply(value_function, axis=1)
-        return data
+        try:
+            df[new_column_name] = df.apply(lambda_func, axis=1)
+            return df
+        except Exception as e:
+            print(f"Error al agregar la columna: {e}")
+            raise
 
     @staticmethod
-    def drop_columns(data, columns):
+    def filter_rows(df, lambda_func):
         """
-        Elimina una o más columnas del DataFrame.
+        Filtra las filas de un DataFrame según una condición.
 
-        Args:
-            data (DataFrame): El conjunto de datos de entrada.
-            columns (list): Lista de nombres de columnas a eliminar.
-
-        Returns:
-            DataFrame: Conjunto de datos sin las columnas especificadas.
+        :param df: DataFrame original
+        :param lambda_func: Función que define la condición para cada fila
+        :return: DataFrame filtrado
         """
-        return data.drop(columns=columns)
+        try:
+            filtered_df = df[df.apply(lambda_func, axis=1)]
+            return filtered_df
+        except Exception as e:
+            print(f"Error al filtrar las filas: {e}")
+            raise
 
     @staticmethod
-    def rename_columns(data, column_mapping):
+    def drop_columns(df, columns_to_drop):
         """
-        Renombra columnas en el DataFrame.
+        Elimina las columnas especificadas de un DataFrame.
 
-        Args:
-            data (DataFrame): El conjunto de datos de entrada.
-            column_mapping (dict): Diccionario con el mapeo {nombre_actual: nuevo_nombre}.
-
-        Returns:
-            DataFrame: Conjunto de datos con las columnas renombradas.
+        :param df: DataFrame original
+        :param columns_to_drop: Lista de nombres de columnas a eliminar
+        :return: DataFrame sin las columnas eliminadas
         """
-        return data.rename(columns=column_mapping)
+        try:
+            df = df.drop(columns=columns_to_drop)
+            return df
+        except Exception as e:
+            print(f"Error al eliminar las columnas: {e}")
+            raise
 
     @staticmethod
-    def sort_data(data, by, ascending=True):
+    def left_join(df1, df2, on):
         """
-        Ordena el DataFrame por una o más columnas.
+        Realiza un left join entre dos DataFrames.
 
-        Args:
-            data (DataFrame): El conjunto de datos de entrada.
-            by (str or list): Columna(s) por las que se debe ordenar.
-            ascending (bool): Orden ascendente (True) o descendente (False).
-
-        Returns:
-            DataFrame: Conjunto de datos ordenado.
+        :param df1: Primer DataFrame
+        :param df2: Segundo DataFrame
+        :param on: Columna o índice sobre el cual hacer el join
+        :return: DataFrame resultante de la unión
         """
-        return data.sort_values(by=by, ascending=ascending)
+        try:
+            result_df = pd.merge(df1, df2, how='left', on=on)
+            return result_df
+        except Exception as e:
+            print(f"Error al realizar el left join: {e}")
+            raise
 
     @staticmethod
-    def aggregate(data, key, aggregation):
+    def group_by_sum(df, by, column):
         """
-        Agrega datos agrupándolos por una o más claves.
+        Agrupa un DataFrame por una columna y suma los valores de otra columna.
 
-        Args:
-            data (DataFrame): El conjunto de datos de entrada.
-            key (str or list): Clave(s) para agrupar.
-            aggregation (dict): Diccionario {columna: función_de_agregación}.
-
-        Returns:
-            DataFrame: Conjunto de datos agregado.
+        :param df: DataFrame original
+        :param by: Columna sobre la cual agrupar
+        :param column: Columna cuyos valores se sumarán
+        :return: DataFrame con los valores agrupados y sumados
         """
-        return data.groupby(key).agg(aggregation).reset_index()
+        try:
+            grouped_df = df.groupby(by)[column].sum().reset_index()
+            return grouped_df
+        except Exception as e:
+            print(f"Error al agrupar y sumar: {e}")
+            raise
 
     @staticmethod
-    def merge_data(data1, data2, on, how="inner"):
+    def rename_columns(df, column_mapping):
         """
-        Combina dos DataFrames.
+        Renombra las columnas de un DataFrame.
 
-        Args:
-            data1 (DataFrame): Primer conjunto de datos.
-            data2 (DataFrame): Segundo conjunto de datos.
-            on (str or list): Columna(s) para combinar.
-            how (str): Tipo de combinación ('inner', 'outer', 'left', 'right').
-
-        Returns:
-            DataFrame: Conjunto de datos combinado.
+        :param df: DataFrame original
+        :param column_mapping: Diccionario con los nombres antiguos y nuevos de las columnas
+        :return: DataFrame con las columnas renombradas
         """
-        return data1.merge(data2, on=on, how=how)
+        try:
+            df = df.rename(columns=column_mapping)
+            return df
+        except Exception as e:
+            print(f"Error al renombrar las columnas: {e}")
+            raise
 
     @staticmethod
-    def pivot_data(data, index, columns, values):
+    def apply_to_column(df, column, func):
         """
-        Reorganiza el DataFrame en formato pivot.
+        Aplica una función personalizada a una columna específica.
 
-        Args:
-            data (DataFrame): El conjunto de datos de entrada.
-            index (str or list): Columna(s) para usar como índice.
-            columns (str): Columna para usar como encabezado.
-            values (str): Columna para usar como valores.
-
-        Returns:
-            DataFrame: Conjunto de datos reorganizado en formato pivot.
+        :param df: DataFrame original
+        :param column: Columna a la que se aplicará la función
+        :param func: Función a aplicar
+        :return: DataFrame con la columna transformada
         """
-        return data.pivot(index=index, columns=columns, values=values)
+        try:
+            df[column] = df[column].apply(func)
+            return df
+        except Exception as e:
+            print(f"Error al aplicar la función a la columna: {e}")
+            raise
+
+    @staticmethod
+    def sort_by(df, columns, ascending=True):
+        """
+        Ordena un DataFrame según las columnas especificadas.
+
+        :param df: DataFrame original
+        :param columns: Columna(s) sobre la cual ordenar
+        :param ascending: Si es True, ordena en orden ascendente (por defecto)
+        :return: DataFrame ordenado
+        """
+        try:
+            sorted_df = df.sort_values(by=columns, ascending=ascending)
+            return sorted_df
+        except Exception as e:
+            print(f"Error al ordenar las filas: {e}")
+            raise
+
+    @staticmethod
+    def drop_duplicates(df, subset=None):
+        """
+        Elimina filas duplicadas en un DataFrame.
+
+        :param df: DataFrame original
+        :param subset: Lista de columnas por las cuales verificar duplicados (opcional)
+        :return: DataFrame sin duplicados
+        """
+        try:
+            df_no_duplicates = df.drop_duplicates(subset=subset)
+            return df_no_duplicates
+        except Exception as e:
+            print(f"Error al eliminar duplicados: {e}")
+            raise
+
+    @staticmethod
+    def replace_values(df, column, old_value, new_value):
+        """
+        Reemplaza valores en una columna de un DataFrame.
+
+        :param df: DataFrame original
+        :param column: Columna en la que se realizará el reemplazo
+        :param old_value: Valor antiguo que será reemplazado
+        :param new_value: Valor nuevo
+        :return: DataFrame con los valores reemplazados
+        """
+        try:
+            df[column] = df[column].replace(old_value, new_value)
+            return df
+        except Exception as e:
+            print(f"Error al reemplazar valores en la columna: {e}")
+            raise
